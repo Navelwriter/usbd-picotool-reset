@@ -114,7 +114,7 @@ impl<B: UsbBus, C: Config> usb_device::class::UsbClass<B> for PicoToolReset<'_, 
                 if req.value & 0x100 != 0 {
                     gpio_mask = 1 << (req.value >> 9);
                 }
-                rp2040_hal::rom_data::reset_to_usb_boot(
+                rp235x_hal::rom_data::reset_to_usb_boot(
                     gpio_mask,
                     u32::from(req.value & 0x7F) | C::INTERFACE_DISABLE.into(),
                 );
