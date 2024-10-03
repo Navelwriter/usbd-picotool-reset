@@ -11,11 +11,8 @@
 
 use panic_halt as _;
 
-use rp_pico::{
-    entry,
-    hal::{self, pac},
-    XOSC_CRYSTAL_FREQ,
-};
+// Alias for our HAL crate
+use rp235x_hal as hal;
 // USB Device support
 use usb_device::{class_prelude::*, prelude::*};
 
@@ -45,21 +42,19 @@ fn main() -> ! {
     .ok()
     .unwrap();
 
-    #[cfg(feature = "rp2040-hal/rp2040-e5")]
-    {
-        let sio = hal::Sio::new(pac.SIO);
-        let _pins = rp_pico::Pins::new(
-            pac.IO_BANK0,
-            pac.PADS_BANK0,
-            sio.gpio_bank0,
-            &mut pac.RESETS,
-        );
-    }
+    // Set the pins to their default state
+    let pins = hal::gpio::Pins::new(
+        pac.IO_BANK0,
+        pac.PADS_BANK0,
+        sio.gpio_bank0,
+        &mut pac.RESETS,
+    );
+
 
     // Set up the USB driver
     let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
-        pac.USBCTRL_REGS,
-        pac.USBCTRL_DPRAM,
+        pac.USB,
+        pac.USB_DPRAM,
         clocks.usb_clock,
         true,
         &mut pac.RESETS,
@@ -71,7 +66,7 @@ fn main() -> ! {
     // Create a USB device RPI Vendor ID and on of these Product ID:
     // https://github.com/raspberrypi/picotool/blob/master/picoboot_connection/picoboot_connection.c#L23-L27
     let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x2e8a, 0x000a))
-        .strings(&[StringDescriptors::new(LangID::EN)
+        .strings(&[StringDescriptors::default()
             .manufacturer("Fake company")
             .product("Picotool port")
             .serial_number("TEST")])

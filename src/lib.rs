@@ -12,6 +12,8 @@
 use core::marker::PhantomData;
 use usb_device::class_prelude::{InterfaceNumber, StringIndex, UsbBus, UsbBusAllocator};
 use usb_device::LangID;
+use rp235x_hal as hal;
+use hal::reboot::RebootKind;
 
 // Vendor specific class
 const CLASS_VENDOR_SPECIFIC: u8 = 0xFF;
@@ -110,13 +112,13 @@ impl<B: UsbBus, C: Config> usb_device::class::UsbClass<B> for PicoToolReset<'_, 
 
         match req.request {
             RESET_REQUEST_BOOTSEL => {
-                let mut gpio_mask = C::BOOTSEL_ACTIVITY_LED.map(|led| 1 << led).unwrap_or(0);
-                if req.value & 0x100 != 0 {
-                    gpio_mask = 1 << (req.value >> 9);
-                }
-                rp235x_hal::rom_data::reset_to_usb_boot(
-                    gpio_mask,
-                    u32::from(req.value & 0x7F) | C::INTERFACE_DISABLE.into(),
+
+                hal::reboot::reboot(
+                    RebootKind::BootSel {
+                        msd_disabled: false, // Adjust if needed
+                        picoboot_disabled: false, // Adjust if needed
+                    },
+                    hal::reboot::RebootArch::Normal,
                 );
                 // no-need to accept/reject, we'll reset the device anyway
                 unreachable!()

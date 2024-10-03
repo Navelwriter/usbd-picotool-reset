@@ -14,7 +14,12 @@ targets = ["thumbv6m-none-eabi"]
 
 [dependencies]
 usb-device = "0.3.2"
-rp235x-hal = "*"
+rp235x-hal = { git = "https://github.com/rp-rs/rp-hal.git", version = "0.2.0", features = [
+    "binary-info",
+    "critical-section-impl",
+    "rt",
+    "defmt",
+] }
 defmt = { version = ">=0.2.0, <0.4", optional = true }
 
 [dev-dependencies]
